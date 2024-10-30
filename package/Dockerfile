@@ -20,6 +20,7 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -tags "${TAGS}" -ldflags "${LDFLA
 
 FROM registry.suse.com/bci/bci-base:15.5
 
+# Install some packages with zypper in the chroot of the final micro image
 RUN zypper -n install --no-recommends git-core curl ca-certificates unzip xz gzip sed tar shadow gawk vim-small netcat-openbsd mkisofs openssh-clients && \
     zypper -n clean -a && rm -rf /tmp/* /var/tmp/* /usr/share/doc/packages/* && \
     useradd rancher && \
@@ -46,6 +47,7 @@ ARG CHART_DEFAULT_BRANCH=release-v2.7
 ARG PARTNER_CHART_DEFAULT_BRANCH=main
 ARG RKE2_CHART_DEFAULT_BRANCH=main
 # kontainer-driver-metadata branch to be set for specific branch other than dev/master, logic at rancher/rancher/pkg/settings/setting.go
+ARG VERSION=${VERSION}
 ARG CATTLE_KDM_BRANCH=release-v2.7
 
 ENV CATTLE_SYSTEM_CHART_DEFAULT_BRANCH=$SYSTEM_CHART_DEFAULT_BRANCH
@@ -53,6 +55,7 @@ ENV CATTLE_CHART_DEFAULT_BRANCH=$CHART_DEFAULT_BRANCH
 ENV CATTLE_PARTNER_CHART_DEFAULT_BRANCH=$PARTNER_CHART_DEFAULT_BRANCH
 ENV CATTLE_RKE2_CHART_DEFAULT_BRANCH=$RKE2_CHART_DEFAULT_BRANCH
 ENV CATTLE_HELM_VERSION v2.16.8-rancher2
+# make sure the version number is consistent with the one at the 1) tests/v2/codecoverage/package/Dockerfile, 2) Dockerfile.dapper, 3) go.mod and 4) the setting MachineProvisionImage in pkg/settings/setting.go
 ENV CATTLE_MACHINE_VERSION v0.15.0-rancher109-patch1
 ENV CATTLE_K3S_VERSION v1.27.10+k3s2
 ENV CATTLE_MACHINE_PROVISION_IMAGE rancher/machine:${CATTLE_MACHINE_VERSION}
@@ -225,6 +228,41 @@ RUN mkdir -p /usr/share/rancher/ui && \
     curl -O https://linode.github.io/rancher-ui-driver-linode/releases/${LINODE_UI_DRIVER_VERSION}/component.js && \
     curl -O https://linode.github.io/rancher-ui-driver-linode/releases/${LINODE_UI_DRIVER_VERSION}/component.css && \
     curl -O https://linode.github.io/rancher-ui-driver-linode/releases/${LINODE_UI_DRIVER_VERSION}/linode.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/driver-aliyunecs && \
+    cd /usr/share/rancher/ui/assets/driver-aliyunecs && \
+    curl -LO https://github.com/cnrancher/ui-driver-aliyun-ecs/releases/download/${ALIYUN_ECS_UI_DRIVER_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-driver-aliyun-ecs/releases/download/${ALIYUN_ECS_UI_DRIVER_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-driver-aliyun-ecs/releases/download/${ALIYUN_ECS_UI_DRIVER_VERSION}/aliyunecs.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/rancher-ui-driver-aliyun && \
+    cd /usr/share/rancher/ui/assets/rancher-ui-driver-aliyun && \
+    curl -LO https://github.com/cnrancher/ui-driver-aliyun-ack/releases/download/${ALIYUN_ACK_UI_DRIVER_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-driver-aliyun-ack/releases/download/${ALIYUN_ACK_UI_DRIVER_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-driver-aliyun-ack/releases/download/${ALIYUN_ACK_UI_DRIVER_VERSION}/aliyunkcs.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/rancher-ui-operator-aliyun && \
+    cd /usr/share/rancher/ui/assets/rancher-ui-operator-aliyun && \
+    curl -LO https://github.com/cnrancher/ui-operator-aliyun-ack/releases/download/${ALIYUN_ACK_UI_OPERATOR_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-operator-aliyun-ack/releases/download/${ALIYUN_ACK_UI_OPERATOR_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-operator-aliyun-ack/releases/download/${ALIYUN_ACK_UI_OPERATOR_VERSION}/aliyunkcs.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/rancher-ui-driver-huawei && \
+    cd /usr/share/rancher/ui/assets/rancher-ui-driver-huawei && \
+    curl -LO https://github.com/cnrancher/ui-driver-huawei-cce/releases/download/${HUAWEI_CCE_UI_DRIVER_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-driver-huawei-cce/releases/download/${HUAWEI_CCE_UI_DRIVER_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-driver-huawei-cce/releases/download/${HUAWEI_CCE_UI_DRIVER_VERSION}/huaweicce.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/rancher-ui-operator-huawei && \
+    cd /usr/share/rancher/ui/assets/rancher-ui-operator-huawei && \
+    curl -LO https://github.com/cnrancher/ui-operator-huawei-cce/releases/download/${HUAWEI_CCE_UI_OPERATOR_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-operator-huawei-cce/releases/download/${HUAWEI_CCE_UI_OPERATOR_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-operator-huawei-cce/releases/download/${HUAWEI_CCE_UI_OPERATOR_VERSION}/huaweicce.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/rancher-ui-driver-tencent && \
+    cd /usr/share/rancher/ui/assets/rancher-ui-driver-tencent && \
+    curl -LO https://github.com/cnrancher/ui-driver-tencent-tke/releases/download/${TENCENT_TKE_UI_DRIVER_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-driver-tencent-tke/releases/download/${TENCENT_TKE_UI_DRIVER_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-driver-tencent-tke/releases/download/${TENCENT_TKE_UI_DRIVER_VERSION}/tencenttke.svg && \
+    mkdir -p /usr/share/rancher/ui/assets/rancher-ui-operator-tencent && \
+    cd /usr/share/rancher/ui/assets/rancher-ui-operator-tencent && \
+    curl -LO https://github.com/cnrancher/ui-operator-tencent-tke/releases/download/${TENCENT_TKE_UI_OPERATOR_VERSION}/component.js && \
+    curl -LO https://github.com/cnrancher/ui-operator-tencent-tke/releases/download/${TENCENT_TKE_UI_OPERATOR_VERSION}/component.css && \
+    curl -LO https://github.com/cnrancher/ui-operator-tencent-tke/releases/download/${TENCENT_TKE_UI_OPERATOR_VERSION}/tencenttke.svg && \
     mkdir -p /usr/share/rancher/ui/api-ui && \
     cd /usr/share/rancher/ui/api-ui && \
     curl -sL https://releases.rancher.com/api-ui/${CATTLE_API_UI_VERSION}.tar.gz | tar xvzf - --strip-components=1 && \
@@ -252,11 +290,11 @@ COPY --from=build /app/rancher /usr/bin/
 COPY --from=build /app/package/entrypoint.sh /usr/bin/
 COPY --from=build /app/package/kustomize.sh /usr/bin/
 COPY --from=build app/package/jailer.sh /usr/bin/
-COPY --from=build /app/k3s-airgap-images.tar /var/lib/rancher/k3s/agent/images/
+COPY --from=build /app/package/k3s-airgap-images.tar /var/lib/rancher/k3s/agent/images/
 RUN chmod +x /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/kustomize.sh
 
-COPY --from=build /app/data.json /var/lib/rancher-data/driver-metadata/
+COPY --from=build /app/package/data.json /var/lib/rancher-data/driver-metadata/
 
 ENV CATTLE_AGENT_IMAGE ${IMAGE_REPO}/rancher-agent:${VERSION}
 ENV CATTLE_SERVER_IMAGE ${IMAGE_REPO}/rancher
